@@ -1,12 +1,14 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
-import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
+import { useState } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -14,194 +16,214 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 const COLORS = {
   background: "#FAF7F2",
   surface: "#FFFFFF",
-  border: "#E8E2D9",
-  text: "#1A1A1A",
-  mutedText: "#6B6B6B",
-  subtleText: "#9A9A9A",
   primary: "#5C8B6E",
-  terracotta: "#C4784A",
-  shadow: "rgba(35, 27, 16, 0.08)",
-  highlight: "#F1E8D7",
-  chipTint: "#EEF4EF",
+  text: "#1A1A1A",
+  secondaryText: "#6B6B6B",
+  tertiaryText: "#9A9A9A",
+  border: "#E8E2D9",
+  error: "#C0392B",
+  warmYellow: "#F5C842",
 };
-
-const FEED_POSTS = [
-  {
-    id: "1",
-    caption: "Rohan showed incredible focus during block building today, and his spatial reasoning is really starting to bloom.",
-    children: ["Rohan", "Aarav", "Priya"],
-    timeAgo: "2 hours ago",
-    viewCount: "14 / 18 parents viewed",
-    palette: ["#F6D8A8", "#F0A36B", "#E8EFE1"],
-  },
-  {
-    id: "2",
-    caption: "Our finger-painting circle turned into a lesson in colour mixing, turn-taking, and very proud little smiles.",
-    children: ["Meera", "Kabir"],
-    timeAgo: "Yesterday",
-    viewCount: "17 / 18 parents viewed",
-    palette: ["#F8D3C2", "#E7A5A3", "#F5E8B8"],
-  },
-  {
-    id: "3",
-    caption: "Morning music time helped the class settle beautifully, and everyone joined in on the rhythm game.",
-    children: ["Class highlight"],
-    timeAgo: "2 days ago",
-    viewCount: "16 / 18 parents viewed",
-    palette: ["#D8E7D3", "#ACC9A4", "#F8E6CF"],
-  },
-];
-
-const TABS = [
-  { key: "Feed", icon: "home-outline" },
-  { key: "Attendance", icon: "calendar-clear-outline" },
-  { key: "Roster", icon: "people-outline" },
-  { key: "Profile", icon: "person-outline" },
-];
 
 function App() {
   const [fontsLoaded] = useFonts({
     Inter_400Regular: require("@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf"),
     Inter_600SemiBold: require("@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf"),
-    Fraunces_400Regular_Italic: require("@expo-google-fonts/fraunces/400Regular_Italic/Fraunces_400Regular_Italic.ttf"),
+    Fraunces_400Regular: require("@expo-google-fonts/fraunces/400Regular/Fraunces_400Regular.ttf"),
   });
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   if (!fontsLoaded) {
     return <View style={styles.loadingScreen} />;
   }
 
+  const canSubmit = phone.trim().length > 0 && password.trim().length > 0;
+
+  const handleLogin = () => {
+    setLoading(true);
+    setError("");
+
+    setTimeout(() => {
+      setLoading(false);
+      setError("Incorrect phone number or password.");
+    }, 1000);
+  };
+
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-        <View style={styles.screen}>
-          <Header />
-          <OfflineBanner />
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.sectionRow}>
-              <Text style={styles.sectionLabel}>Today . No posts yet</Text>
-              <View style={styles.sectionDivider} />
+      <SafeAreaView style={styles.safeArea} edges={["top", "left", "right", "bottom"]}>
+        <StatusBar style="dark" />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.screen}
+        >
+          <View style={styles.content}>
+            <View style={styles.brandBlock}>
+              <View style={styles.logoCircle}>
+                <Ionicons name="sunny" size={28} color={COLORS.warmYellow} />
+                <MaterialCommunityIcons
+                  name="leaf"
+                  size={22}
+                  color={COLORS.primary}
+                  style={styles.logoLeaf}
+                />
+              </View>
+              <Text style={styles.schoolName}>Sunshine Preschool</Text>
+              <Text style={styles.wordmark}>CadenceSprout</Text>
             </View>
 
-            <View style={styles.dateRow}>
-              <Text style={styles.dateLabel}>Yesterday</Text>
+            <View style={styles.formBlock}>
+              <InputField
+                labelPrefix="+91"
+                placeholder="Phone number"
+                value={phone}
+                onChangeText={(value) => {
+                  setPhone(value.replace(/[^0-9]/g, ""));
+                  if (error) setError("");
+                }}
+                keyboardType="phone-pad"
+                focused={focusedField === "phone"}
+                errored={Boolean(error)}
+                editable={!loading}
+                onFocus={() => setFocusedField("phone")}
+                onBlur={() => setFocusedField(null)}
+              />
+
+              <View style={styles.fieldSpacer} />
+
+              <PasswordField
+                placeholder="Password"
+                value={password}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  if (error) setError("");
+                }}
+                visible={passwordVisible}
+                onToggleVisibility={() => setPasswordVisible((current) => !current)}
+                focused={focusedField === "password"}
+                errored={Boolean(error)}
+                editable={!loading}
+                onFocus={() => setFocusedField("password")}
+                onBlur={() => setFocusedField(null)}
+              />
+
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+              <Pressable style={styles.forgotRow}>
+                <Text style={styles.forgotText}>Forgot password?</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleLogin}
+                disabled={!canSubmit || loading}
+                style={({ pressed }) => [
+                  styles.loginButton,
+                  !canSubmit && styles.loginButtonDisabled,
+                  pressed && canSubmit && !loading && styles.loginButtonPressed,
+                ]}
+              >
+                {loading ? (
+                  <View style={styles.loadingIndicator} />
+                ) : (
+                  <Text style={styles.loginButtonText}>Log In</Text>
+                )}
+              </Pressable>
             </View>
+          </View>
 
-            {FEED_POSTS.map((post, index) => (
-              <PostCard key={post.id} post={post} isPartial={index === 2} />
-            ))}
-          </ScrollView>
-
-          <Pressable style={styles.fab}>
-            <Ionicons name="add" size={28} color="#FFFFFF" />
-          </Pressable>
-
-          <BottomTabs />
-        </View>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Powered by CadenceSprout</Text>
+          </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </SafeAreaProvider>
   );
 }
 
-function Header() {
+function InputField({
+  labelPrefix,
+  placeholder,
+  value,
+  onChangeText,
+  keyboardType,
+  focused,
+  errored,
+  editable,
+  onFocus,
+  onBlur,
+}) {
   return (
-    <View style={styles.header}>
-      <View style={styles.headerLeft}>
-        <View style={styles.logoCircle}>
-          <Ionicons name="sunny" size={16} color={COLORS.terracotta} />
-          <MaterialCommunityIcons
-            name="leaf"
-            size={14}
-            color={COLORS.primary}
-            style={styles.logoLeaf}
-          />
-        </View>
-        <View>
-          <Text style={styles.schoolName}>Sunshine Preschool</Text>
-          <Text style={styles.className}>LKG A</Text>
-        </View>
+    <View
+      style={[
+        styles.inputShell,
+        focused && styles.inputShellFocused,
+        errored && styles.inputShellErrored,
+        !editable && styles.inputShellDisabled,
+      ]}
+    >
+      <View style={styles.prefixWrap}>
+        <Text style={styles.prefixText}>{labelPrefix}</Text>
       </View>
-      <Pressable style={styles.iconButton}>
-        <Ionicons name="notifications-outline" size={22} color={COLORS.mutedText} />
+      <View style={styles.prefixDivider} />
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={COLORS.tertiaryText}
+        keyboardType={keyboardType}
+        style={styles.input}
+        editable={editable}
+        onFocus={onFocus}
+        onBlur={onBlur}
+      />
+    </View>
+  );
+}
+
+function PasswordField({
+  placeholder,
+  value,
+  onChangeText,
+  visible,
+  onToggleVisibility,
+  focused,
+  errored,
+  editable,
+  onFocus,
+  onBlur,
+}) {
+  return (
+    <View
+      style={[
+        styles.inputShell,
+        focused && styles.inputShellFocused,
+        errored && styles.inputShellErrored,
+        !editable && styles.inputShellDisabled,
+      ]}
+    >
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={COLORS.tertiaryText}
+        style={[styles.input, styles.passwordInput]}
+        secureTextEntry={!visible}
+        editable={editable}
+        onFocus={onFocus}
+        onBlur={onBlur}
+      />
+      <Pressable onPress={onToggleVisibility} style={styles.eyeButton}>
+        <Ionicons
+          name={visible ? "eye-off-outline" : "eye-outline"}
+          size={22}
+          color={COLORS.tertiaryText}
+        />
       </Pressable>
-    </View>
-  );
-}
-
-function OfflineBanner() {
-  return (
-    <View style={styles.offlineBanner}>
-      <Ionicons name="cloud-offline-outline" size={16} color="#FFFFFF" />
-      <Text style={styles.offlineText}>You're offline - showing saved content</Text>
-    </View>
-  );
-}
-
-function PostCard({ post, isPartial }) {
-  return (
-    <Pressable style={[styles.card, isPartial && styles.partialCard]}>
-      <LinearGradient
-        colors={post.palette}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.photo}
-      >
-        <View style={styles.photoScene}>
-          <View style={styles.photoSun} />
-          <View style={styles.photoTable} />
-          <View style={styles.photoKidsRow}>
-            <View style={[styles.photoKid, styles.photoKidLarge]} />
-            <View style={styles.photoKid} />
-            <View style={[styles.photoKid, styles.photoKidSmall]} />
-          </View>
-        </View>
-      </LinearGradient>
-
-      <View style={styles.cardBody}>
-        <Text style={styles.caption}>{post.caption}</Text>
-
-        <View style={styles.chipsRow}>
-          {post.children.map((child) => (
-            <View key={child} style={styles.chip}>
-              <Text style={styles.chipText}>{child}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.metaRow}>
-          <Text style={styles.metaText}>{post.timeAgo}</Text>
-          <View style={styles.viewsRow}>
-            <Ionicons name="eye-outline" size={14} color={COLORS.subtleText} />
-            <Text style={styles.metaText}>{post.viewCount}</Text>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function BottomTabs() {
-  return (
-    <View style={styles.tabBar}>
-      {TABS.map((tab) => {
-        const active = tab.key === "Feed";
-        return (
-          <Pressable key={tab.key} style={styles.tabItem}>
-            <Ionicons
-              name={tab.icon}
-              size={21}
-              color={active ? COLORS.primary : COLORS.subtleText}
-            />
-            <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
-              {tab.key}
-            </Text>
-          </Pressable>
-        );
-      })}
     </View>
   );
 }
@@ -218,244 +240,158 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  header: {
-    height: 56,
-    flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
   },
-  headerLeft: {
-    flexDirection: "row",
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 52,
+  },
+  brandBlock: {
     alignItems: "center",
-    gap: 12,
+    marginBottom: 40,
   },
   logoCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: COLORS.surface,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 3 },
+    position: "relative",
+    shadowColor: "rgba(35, 27, 16, 0.08)",
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 18,
+    elevation: 6,
   },
   logoLeaf: {
     position: "absolute",
-    right: 5,
-    bottom: 5,
+    right: 15,
+    bottom: 13,
   },
   schoolName: {
-    fontFamily: "Inter_600SemiBold",
+    marginTop: 8,
+    color: COLORS.secondaryText,
     fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
+  wordmark: {
+    marginTop: 24,
     color: COLORS.text,
+    fontSize: 24,
+    fontFamily: "Fraunces_400Regular",
   },
-  className: {
-    marginTop: 2,
+  formBlock: {
+    width: "100%",
+  },
+  inputShell: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    backgroundColor: COLORS.surface,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  inputShellFocused: {
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  inputShellErrored: {
+    borderColor: COLORS.error,
+  },
+  inputShellDisabled: {
+    opacity: 0.5,
+  },
+  prefixWrap: {
+    justifyContent: "center",
+    paddingLeft: 14,
+    paddingRight: 10,
+  },
+  prefixText: {
+    color: COLORS.secondaryText,
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    color: COLORS.mutedText,
   },
-  iconButton: {
-    width: 32,
-    height: 32,
+  prefixDivider: {
+    width: 1,
+    height: 22,
+    backgroundColor: COLORS.border,
+  },
+  input: {
+    flex: 1,
+    height: "100%",
+    paddingHorizontal: 12,
+    color: COLORS.text,
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    outlineStyle: "none",
+  },
+  passwordInput: {
+    paddingRight: 8,
+  },
+  eyeButton: {
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
   },
-  offlineBanner: {
-    height: 40,
-    marginHorizontal: 16,
-    borderRadius: 14,
-    backgroundColor: COLORS.terracotta,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 12,
-  },
-  offlineText: {
-    flex: 1,
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 120,
-  },
-  sectionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 16,
-  },
-  sectionLabel: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
-    color: COLORS.subtleText,
-  },
-  sectionDivider: {
-    flex: 1,
-    borderBottomWidth: 1,
-    borderColor: COLORS.border,
-    borderStyle: "dashed",
-  },
-  dateRow: {
-    marginBottom: 10,
-  },
-  dateLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 13,
-    color: COLORS.mutedText,
-    letterSpacing: 0.2,
-  },
-  card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    overflow: "hidden",
-    marginBottom: 18,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 1,
-    shadowRadius: 16,
-    elevation: 5,
-  },
-  partialCard: {
-    marginBottom: -92,
-  },
-  photo: {
-    width: "100%",
-    aspectRatio: 4 / 3,
-    justifyContent: "space-between",
-    padding: 18,
-  },
-  photoScene: {
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  photoSun: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(255, 248, 223, 0.92)",
-  },
-  photoTable: {
+  fieldSpacer: {
     height: 16,
-    borderRadius: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    marginBottom: 10,
   },
-  photoKidsRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-  },
-  photoKid: {
-    width: 76,
-    height: 108,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
-    backgroundColor: "rgba(255, 255, 255, 0.72)",
-  },
-  photoKidLarge: {
-    height: 124,
-  },
-  photoKidSmall: {
-    width: 62,
-    height: 96,
-  },
-  cardBody: {
-    padding: 12,
-  },
-  caption: {
-    fontFamily: "Fraunces_400Regular_Italic",
-    fontSize: 16,
-    lineHeight: 24,
-    color: COLORS.text,
-  },
-  chipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
+  errorText: {
     marginTop: 10,
+    color: COLORS.error,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
   },
-  chip: {
-    minHeight: 28,
-    paddingHorizontal: 12,
+  forgotRow: {
+    alignSelf: "flex-end",
+    marginTop: 12,
+  },
+  forgotText: {
+    color: COLORS.primary,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+  },
+  loginButton: {
+    height: 48,
     borderRadius: 8,
     backgroundColor: COLORS.primary,
+    marginTop: 24,
+    alignItems: "center",
     justifyContent: "center",
   },
-  chipText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
+  loginButtonDisabled: {
+    opacity: 0.55,
+  },
+  loginButtonPressed: {
+    transform: [{ scale: 0.97 }],
+  },
+  loginButtonText: {
     color: "#FFFFFF",
-  },
-  metaRow: {
-    marginTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  viewsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  metaText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    color: COLORS.subtleText,
-  },
-  fab: {
-    position: "absolute",
-    right: 16,
-    bottom: 88,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "rgba(92, 139, 110, 0.35)",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 1,
-    shadowRadius: 18,
-    elevation: 8,
-  },
-  tabBar: {
-    height: 72,
-    backgroundColor: COLORS.surface,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    flexDirection: "row",
-    paddingBottom: 10,
-    paddingHorizontal: 8,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-  tabLabel: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 11,
-    color: COLORS.subtleText,
-  },
-  tabLabelActive: {
-    color: COLORS.primary,
+    fontSize: 16,
     fontFamily: "Inter_600SemiBold",
+  },
+  loadingIndicator: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.35)",
+    borderTopColor: "#FFFFFF",
+  },
+  footer: {
+    paddingBottom: 18,
+    paddingHorizontal: 24,
+  },
+  footerText: {
+    textAlign: "center",
+    color: COLORS.tertiaryText,
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
   },
 });
 
