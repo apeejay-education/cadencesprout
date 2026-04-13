@@ -103,8 +103,8 @@ This product handles photos and videos of children (ages 3–6). **DPDP Act 2023
 
 ## Project Status
 
-> **Pre-build.** All planning documents complete. UI screens in progress (Google Stitch).
-> Next step: implementation sprint beginning Month 1.
+> **Implementation started.** Planning documents are complete, and the mobile app now has an Expo scaffold plus the first teacher home feed screen.
+> Next step: add navigation, the post composer, and real data wiring.
 
 Reviews completed:
 - ✅ Office Hours (product strategy)
@@ -112,3 +112,29 @@ Reviews completed:
 - ✅ Design Review (UI/UX specs)
 - ✅ Engineering Review (architecture & test plan)
 - ✅ PRD (epics, stories, acceptance criteria)
+
+---
+
+## Mobile App Setup
+
+The React Native teacher app now boots with Expo SDK 55 from the repository root.
+
+Requirements:
+- Node.js 22+
+- npm 10+
+- Expo Go on a device or an iOS/Android simulator
+
+Commands:
+
+```bash
+npm install
+npm start
+```
+
+Convenience scripts:
+- `npm run ios`
+- `npm run android`
+- `npm run web`
+
+Current implemented screen:
+- Teacher `Home Feed` (`T-1`) with the warm editorial visual system from [`DESIGN.md`](./DESIGN.md) and [`PRD.md`](./PRD.md)

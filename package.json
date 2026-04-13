@@ -1,0 +1,23 @@
+{
+  "name": "cadencesprout",
+  "version": "0.1.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo-google-fonts/fraunces": "^0.4.1",
+    "@expo-google-fonts/inter": "^0.4.2",
+    "expo": "^55.0.9",
+    "expo-font": "^55.0.4",
+    "expo-linear-gradient": "^55.0.9",
+    "expo-status-bar": "^55.0.4",
+    "react": "^19.2.4",
+    "react-native": "^0.84.1",
+    "react-native-safe-area-context": "^5.7.0"
+  }
+}

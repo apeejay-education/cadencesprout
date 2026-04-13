@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "CadenceSprout",
+    "slug": "cadencesprout",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FAF7F2"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FAF7F2"
+      }
+    }
+  }
+}
